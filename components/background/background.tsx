@@ -42,7 +42,7 @@ const Terrain: React.FC = () => {
   );
 
   const createTerrainTexture = useCallback((config: TerrainConfig) => {
-    if (typeof document === 'undefined') return null;
+    if (typeof window === "undefined") return null;
 
     const canvas = document.createElement("canvas");
     canvas.width = config.texture.width;
@@ -88,9 +88,11 @@ const Terrain: React.FC = () => {
   }, []);
 
   const initScene = useCallback(() => {
-    if (typeof document === 'undefined') return null;
+    if (typeof window === "undefined") return null;
 
     const canvas = document.querySelector("canvas.webgl") as HTMLCanvasElement;
+    if (!canvas) return null;
+
     const scene = new THREE.Scene();
 
     // Optimize renderer settings
@@ -139,6 +141,8 @@ const Terrain: React.FC = () => {
   }, [terrainConfig, createTerrainTexture]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const sceneData = initScene();
     if (!sceneData) return;
 
@@ -212,7 +216,7 @@ const Terrain: React.FC = () => {
       if (deltaTime > interval) {
         lastTime = currentTime - (deltaTime % interval);
 
-        if (typeof document !== 'undefined' && !document.hidden) {
+        if (typeof document !== "undefined" && !document.hidden) {
           const elapsedTime = clock.getElapsedTime();
           if (material.uniforms) {
             material.uniforms.uTime.value = elapsedTime;
@@ -236,6 +240,11 @@ const Terrain: React.FC = () => {
       scene.remove(mesh);
     };
   }, [initScene]);
+
+  // Only render the canvas if we're on the client side
+  if (typeof window === "undefined") {
+    return null;
+  }
 
   return <canvas className="webgl" />;
 };
